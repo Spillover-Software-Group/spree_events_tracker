@@ -15,8 +15,6 @@ module Spree
               :total,
               :variant, presence: true
 
-
-
     scope :added,   -> { where(activity: 'add')    }
     scope :removed, -> { where(activity: 'remove') }
     scope :updated, -> { where(activity: 'update') }

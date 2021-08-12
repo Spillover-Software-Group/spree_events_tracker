@@ -1,11 +1,14 @@
-Spree::OrdersController.class_eval do
+module Spree
+  module OrdersControllerDecorator
+    def self.prepended(base)
+      base.include Spree::CheckoutEventTracker
 
-  include Spree::CheckoutEventTracker
+      base.after_action :track_return_to_cart, only: :edit, if: :current_order
+      base.after_action :track_empty_cart_activity, only: :empty
+    end
 
-  after_action :track_return_to_cart, only: :edit, if: :current_order
-  after_action :track_empty_cart_activity, only: :empty
+    private
 
-  private
     def track_empty_cart_activity
       track_activity(activity: :empty_cart, previous_state: previous_state, next_state: nil)
     end
@@ -28,5 +31,10 @@ Spree::OrdersController.class_eval do
     def referred_from_any_checkout_step?
       current_order_includes_previous_state? || previous_state.eql?('cart')
     end
+    
+  end
+end
 
+if ::Spree::OrdersController.included_modules.exclude?(Spree::OrdersControllerDecorator)
+  ::Spree::OrdersController.prepend Spree::OrdersControllerDecorator
 end
